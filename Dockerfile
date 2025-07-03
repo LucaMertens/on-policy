@@ -2,7 +2,7 @@ FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
-ENV SC2PATH=/root/StarCraftII
+ENV SC2PATH=/opt/StarCraftII
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -42,19 +42,21 @@ RUN mkdir -p /opt/StarCraftII/Maps && \
     mv mini_games /opt/StarCraftII/Maps/ && \
     rm mini_games.zip
 
+
 # Download SMAC Maps
-RUN cd /root && \
-    wget https://github.com/oxwhirl/smac/releases/download/v1/SMAC_Maps.zip && \
-    unzip SMAC_Maps.zip && \
-    mv SMAC_Maps /root/StarCraftII/Maps/ && \
-    rm SMAC_Maps.zip
+RUN cd /opt && \
+    wget https://github.com/oxwhirl/smac/releases/download/v1/SMAC_Maps_V1.tar.gz && \
+    tar -xzf SMAC_Maps_V1.tar.gz && \
+    mv SMAC_Maps /opt/StarCraftII/Maps/ && \
+    rm SMAC_Maps_V1.tar.gz
 
 # Download stableid.json for SMAC
-RUN cd /root/StarCraftII && \
+RUN cd /opt/StarCraftII && \
     wget https://raw.githubusercontent.com/Blizzard/s2client-proto/master/stableid.json
 
 
-ENV PYTHONPATH=/workspace/on-policy:$PYTHONPATH
+ENV PYTHONPATH=/workspace/on-policy
+
 ENV DISPLAY=:0
 ENV QT_X11_NO_MITSHM=1
 ENV XAUTHORITY=/tmp/.docker.xauth
@@ -69,12 +71,12 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH=/opt/conda/bin:$PATH
 
 # Create conda environment
-RUN conda create -n marl python=3.6.1 -y
+RUN conda create -n marl python=3.8 -y
 ENV CONDA_DEFAULT_ENV=marl
 ENV PATH=/opt/conda/envs/marl/bin:$PATH
 
 # Install PyTorch for CUDA 12.4 (using compatible version)
-RUN pip install torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cu124
+RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
 # Set working directory
 WORKDIR /workspace
