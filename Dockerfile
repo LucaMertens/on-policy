@@ -55,11 +55,7 @@ RUN cd /opt/StarCraftII && \
     wget https://raw.githubusercontent.com/Blizzard/s2client-proto/master/stableid.json
 
 
-ENV PYTHONPATH=/workspace/on-policy
 
-ENV DISPLAY=:0
-ENV QT_X11_NO_MITSHM=1
-ENV XAUTHORITY=/tmp/.docker.xauth
 
 # Install Miniconda
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh \
@@ -78,6 +74,12 @@ ENV PATH=/opt/conda/envs/marl/bin:$PATH
 # Install PyTorch for CUDA 12.4 (using compatible version)
 RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
+ENV PYTHONPATH=/workspace/on-policy
+
+# ENV DISPLAY=:0
+ENV QT_X11_NO_MITSHM=1
+# ENV XAUTHORITY=/tmp/.docker.xauth
+
 # Set working directory
 WORKDIR /workspace
 
@@ -89,17 +91,17 @@ WORKDIR /workspace/on-policy
 RUN pip install -e .
 
 # Install additional dependencies
-# RUN pip install \
-#     numpy \
-#     scipy \
-#     tensorboard \
-#     wandb \
-#     gym \
-#     seaborn \
-#     cffi \
-#     pygame \
-#     imageio \
-#     protobuf==3.20.3
+RUN pip install \
+    numpy \
+    scipy \
+    tensorboard \
+    wandb \
+    gym \
+    seaborn \
+    cffi \
+    pygame \
+    imageio \
+    protobuf==3.20.3
 
 
 
@@ -129,6 +131,8 @@ RUN pip install -e .
 
 # Set up permissions
 RUN chmod +x /workspace/on-policy/onpolicy/scripts/*.sh
+RUN conda init bash && \
+    echo "conda activate marl" >> ~/.bashrc
 
 # Set the working directory to the scripts folder
 WORKDIR /workspace/on-policy/onpolicy/scripts
