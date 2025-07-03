@@ -15,6 +15,14 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     python3-dev \
+    xvfb \
+    x11vnc \
+    xauth \
+    libx11-dev \
+    libxext-dev \
+    libxrender-dev \
+    libxtst6 \
+    libxi6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install StarCraft II (headless Linux version)
@@ -47,6 +55,9 @@ RUN cd /root/StarCraftII && \
 
 
 ENV PYTHONPATH=/workspace/on-policy:$PYTHONPATH
+ENV DISPLAY=:0
+ENV QT_X11_NO_MITSHM=1
+ENV XAUTHORITY=/tmp/.docker.xauth
 
 # Install Miniconda
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh \
