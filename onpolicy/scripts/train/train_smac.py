@@ -13,16 +13,36 @@ from onpolicy.envs.env_wrappers import ShareSubprocVecEnv, ShareDummyVecEnv
 
 def patch_defeatRoaches():
     import smacv2.env.starcraft2.maps.smac_maps as smac_maps
+    from smacv2.env.starcraft2.maps import get_map_params
+    
+    # Add the map to the registry
     smac_maps.map_param_registry["DefeatRoaches"] = {
         "n_agents": 5,
         "n_enemies": 5,
         "limit": 150,
         "a_race": "T",
-        "b_race": "T",
+        "b_race": "Z",  # Changed to Zerg since roaches are Zerg units
         "unit_type_bits": 0,
-        "map_type": "defeat_roaches",
+        "map_type": "marines_vs_roaches",  # You might need to create this map_type
         "map_name": "DefeatRoaches",
-    },
+    }
+    
+    # If SMACv2 has a map type registry, you may need to define the map type
+    # This is a simplified example - you'll need to adapt to the actual SMACv2 structure
+    if hasattr(smac_maps, 'map_type_to_units'):
+        smac_maps.map_type_to_units["marines_vs_roaches"] = {
+            "ally_units": [("Marine", 5)],
+            "enemy_units": [("Roach", 5)]
+        }
+    
+    # Make sure the map is available in get_map_params
+    if hasattr(smac_maps, 'get_map_params'):
+        old_get_map_params = smac_maps.get_map_params
+        def new_get_map_params(map_name):
+            if map_name == "DefeatRoaches":
+                return smac_maps.map_param_registry["DefeatRoaches"]
+            return old_get_map_params(map_name)
+        smac_maps.get_map_params = new_get_map_params
 
 
 """Train script for SMAC."""
@@ -60,6 +80,15 @@ def parse_smacv2_distribution(args):
             "weights": [0.45, 0.45, 0.1],
             "observe": True,
         } 
+    if args.map_name == "DefeatRoaches":
+        distribution_config['team_gen'] = {
+            "dist_type": "fixed",
+            "items": ["Marine"] * 5 + ["Roach"] *5,
+            "ally_units": [("Marine", 5)],
+            "enemy_units": [("Roach", 5)],
+            "test_mode": False,
+            "observe": True
+        }
     return distribution_config
 
 def make_train_env(all_args):
@@ -69,6 +98,7 @@ def make_train_env(all_args):
                 from onpolicy.envs.starcraft2.StarCraft2_Env import StarCraft2Env
                 env = StarCraft2Env(all_args)
             elif all_args.env_name == "StarCraft2v2":
+                patch_defeatRoaches()
                 from onpolicy.envs.starcraft2.SMACv2_modified import SMACv2
                 env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name)
             elif all_args.env_name == "SMAC":
@@ -100,7 +130,7 @@ def make_eval_env(all_args):
                 env = StarCraft2Env(all_args)
             elif all_args.env_name == "StarCraft2v2":
                 from onpolicy.envs.starcraft2.SMACv2_modified import SMACv2
-                env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name)
+                env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name, render=True)
             elif all_args.env_name == "SMAC":
                 from onpolicy.envs.starcraft2.SMAC import SMAC
                 env = SMAC(map_name=all_args.map_name)

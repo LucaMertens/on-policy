@@ -49,6 +49,7 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86
 
 # Stage 2: Main application container
 FROM pytorch/pytorch:1.5.1-cuda10.1-cudnn7-devel
+# FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -112,13 +113,17 @@ ENV QT_X11_NO_MITSHM=1
 # ENV XAUTHORITY=/tmp/.docker.xauth
 
 RUN pip install git+https://github.com/oxwhirl/smacv2.git
+RUN pip install wandb
 
 # Copy the repository
 COPY . /workspace/on-policy/
 
+
 # Install the on-policy package
 WORKDIR /workspace/on-policy
 RUN pip install -e .
+
+# RUN pip install -r requirements.txt
 
 
 # Install additional dependencies
@@ -134,7 +139,7 @@ RUN pip install -e .
 #     imageio \
 #     protobuf==3.20.3
 
-# RUN pip install typing_extensions>=4.5 --upgrade
+RUN pip install typing_extensions>=4.5 --upgrade
 
 # RUN pip install \
 #     packaging>=24 \
@@ -145,7 +150,7 @@ RUN pip install -e .
 #     importlib_metadata>=6 \
 #     tomli>=2.0.1 
 
-
+RUN pip install tensorboardX protobuf==3.20
 
 
 
@@ -175,6 +180,18 @@ RUN pip install -e .
 # Set up permissions
 
 RUN chmod +x /workspace/on-policy/onpolicy/scripts/*.sh
+
+# RUN apt-get update
+# RUN apt-get install -y gcc g++ gperf bison flex texinfo help2man make libncurses5-dev \
+#     python3-dev autoconf automake libtool libtool-bin gawk wget bzip2 xz-utils unzip \
+#     patch rsync meson ninja-build
+
+# # Install crosstool-ng
+# RUN wget http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.26.0.tar.bz2
+# RUN tar -xjf crosstool-ng-1.26.0.tar.bz2
+# RUN cd crosstool-ng-1.26.0 && ./configure --prefix=/crosstool-ng-1.26.0/out && make && make install
+# ENV PATH=$PATH:/crosstool-ng-1.26.0/out/bin
+
 
 
 

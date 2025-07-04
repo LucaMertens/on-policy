@@ -24,6 +24,7 @@ do
         --num_env_steps 20000000 \
         --ppo_epoch 5 \
         --use_value_active_masks \
+        --user_name "luca-mertens-kiel-university" # wandb user name
         # --use_eval \
         # --eval_episodes 32
 done
