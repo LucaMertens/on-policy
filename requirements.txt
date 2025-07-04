@@ -62,7 +62,7 @@ Keras-Preprocessing==1.1.2
 kiwisolver==1.0.1
 lockfile==0.12.2
 Markdown==3.1.1
-matplotlib==3.0.0
+# matplotlib==3.0.0
 mock==2.0.0
 monotonic==1.5
 more-itertools==4.3.0
@@ -134,7 +134,7 @@ tornado==5.1.1
 tqdm==4.48.2
 typing-extensions==3.7.4.3
 urllib3==1.23
-wandb==0.10.5
+wandb
 watchdog==0.10.3
 websocket-client==0.53.0
 Werkzeug==0.16.1

@@ -23,6 +23,8 @@ RUN apt-get update && apt-get install -y \
     libxrender-dev \
     libxtst6 \
     libxi6 \
+    libjpeg-dev \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install StarCraft II (headless Linux version)
@@ -67,9 +69,14 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH=/opt/conda/bin:$PATH
 
 # Create conda environment
-RUN conda create -n marl python=3.8 -y
+RUN conda create -n marl python=3.10 -y
 ENV CONDA_DEFAULT_ENV=marl
 ENV PATH=/opt/conda/envs/marl/bin:$PATH
+
+RUN conda init bash && \
+    echo "conda activate marl" >> ~/.bashrc
+
+RUN conda init && conda activate marl 2>&1 > /dev/null || echo "There were failing tests!"
 
 # Install PyTorch for CUDA 12.4 (using compatible version)
 RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu118
@@ -103,6 +110,19 @@ RUN pip install \
     imageio \
     protobuf==3.20.3
 
+RUN pip install typing_extensions>=4.5 --upgrade
+RUN pip install git+https://github.com/oxwhirl/smacv2.git
+
+RUN pip install \
+    packaging>=24 \
+    ordered-set>=3.1.1 \
+    more_itertools>=8.8 \
+    jaraco.text>=3.7 \
+    importlib_resources>=5.10.2 \
+    importlib_metadata>=6 \
+    tomli>=2.0.1 
+
+
 
 
 
@@ -130,9 +150,10 @@ RUN pip install \
 # RUN pip install gfootball
 
 # Set up permissions
+
 RUN chmod +x /workspace/on-policy/onpolicy/scripts/*.sh
-RUN conda init bash && \
-    echo "conda activate marl" >> ~/.bashrc
+
+
 
 # Set the working directory to the scripts folder
 WORKDIR /workspace/on-policy/onpolicy/scripts
