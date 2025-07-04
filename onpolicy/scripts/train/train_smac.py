@@ -10,6 +10,21 @@ import torch
 from onpolicy.config import get_config
 from onpolicy.envs.env_wrappers import ShareSubprocVecEnv, ShareDummyVecEnv
 
+
+def patch_defeatRoaches():
+    import smacv2.env.starcraft2.maps.smac_maps as smac_maps
+    smac_maps.map_param_registry["DefeatRoaches"] = {
+        "n_agents": 5,
+        "n_enemies": 5,
+        "limit": 150,
+        "a_race": "T",
+        "b_race": "T",
+        "unit_type_bits": 0,
+        "map_type": "defeat_roaches",
+        "map_name": "DefeatRoaches",
+    },
+
+
 """Train script for SMAC."""
 
 def parse_smacv2_distribution(args):
@@ -60,6 +75,7 @@ def make_train_env(all_args):
                 from onpolicy.envs.starcraft2.SMAC import SMAC
                 env = SMAC(map_name=all_args.map_name)
             elif all_args.env_name == "SMACv2":
+                patch_defeatRoaches()
                 from onpolicy.envs.starcraft2.SMACv2 import SMACv2
                 env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name)
             else:
@@ -90,6 +106,7 @@ def make_eval_env(all_args):
                 env = SMAC(map_name=all_args.map_name)
             elif all_args.env_name == "SMACv2":
                 from onpolicy.envs.starcraft2.SMACv2 import SMACv2
+                
                 env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name)
             else:
                 print("Can not support the " + all_args.env_name + "environment.")
@@ -219,6 +236,7 @@ def main(args):
         num_agents = get_map_params(all_args.map_name)["n_agents"]
     elif all_args.env_name == "SMACv2" or all_args.env_name == 'StarCraft2v2':
         from smacv2.env.starcraft2.maps import get_map_params
+        import smacv2.env.starcraft2.maps.smac_maps as smac_maps
         num_agents = parse_smacv2_distribution(all_args)['n_units']
 
     config = {

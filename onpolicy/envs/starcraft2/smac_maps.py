@@ -14,6 +14,16 @@ class SMACMap(lib.Map):
 
 
 map_param_registry = {
+    "DefeatRoaches": {
+        "n_agents": 5,
+        "n_enemies": 5,
+        "limit": 150,
+        "a_race": "T",
+        "b_race": "T",
+        "unit_type_bits": 0,
+        "map_type": "defeat_roaches",
+        "map_name": "DefeatRoaches",
+    },
     "3m": {
         "n_agents": 3,
         "n_enemies": 3,
