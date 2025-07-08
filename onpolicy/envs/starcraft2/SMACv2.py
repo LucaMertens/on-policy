@@ -22,7 +22,9 @@ class SMACv2(StarCraftCapabilityEnvWrapper):
         np.random.seed(seed)
 
     def reset(self):
+        print("resetting SMACv2 environment")
         obs, state = super().reset()
+        print("Done resetting SMACv2 environment")
         state = [state for i in range(self.env.n_agents)]
         avail_actions = [self.get_avail_agent_actions(i) for i in range(self.env.n_agents)]
         return obs, state, avail_actions

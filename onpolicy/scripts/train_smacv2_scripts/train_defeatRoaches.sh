@@ -1,10 +1,12 @@
-env="StarCraft2v2"
+# env="StarCraft2v2"
+env="SMACv2"
 map="DefeatRoaches"
 algo="mappo"
 units="5v5" # 5 marines vs 5 roaches
 
 exp="defeatroaches"
 seed_max=1
+
 
 echo "env is ${env}, map is ${map}, algo is ${algo}, exp is ${exp}, max seed is ${seed_max}"
 for seed in `seq ${seed_max}`;
@@ -18,12 +20,15 @@ do
         --seed ${seed} \
         --units ${units} \
         --n_training_threads 1 \
-        --n_rollout_threads 8 \
+        --n_rollout_threads 1 \
         --num_mini_batch 1 \
+        --use_render \
+        --save-gifs \
         --episode_length 400 \
-        --num_env_steps 20000000 \
+        --num_env_steps 1 \
         --ppo_epoch 5 \
         --use_value_active_masks \
+        --n_render_rollout_thread 1 \
         --user_name "luca-mertens-kiel-university" # wandb user name
         # --use_eval \
         # --eval_episodes 32

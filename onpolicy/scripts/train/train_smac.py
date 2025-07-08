@@ -23,13 +23,11 @@ def patch_defeatRoaches():
         "a_race": "T",
         "b_race": "Z",  # Changed to Zerg since roaches are Zerg units
         "unit_type_bits": 0,
-        "map_type": "marines_vs_roaches",  # You might need to create this map_type
+        "map_type": "terran_gen",
         "map_name": "DefeatRoaches",
     }
     
-    # If SMACv2 has a map type registry, you may need to define the map type
-    # This is a simplified example - you'll need to adapt to the actual SMACv2 structure
-    if hasattr(smac_maps, 'map_type_to_units'):
+      if hasattr(smac_maps, 'map_type_to_units'):
         smac_maps.map_type_to_units["marines_vs_roaches"] = {
             "ally_units": [("Marine", 5)],
             "enemy_units": [("Roach", 5)]
@@ -50,8 +48,10 @@ def patch_defeatRoaches():
 def parse_smacv2_distribution(args):
     units = args.units.split('v')
     distribution_config = {
-        "n_units": int(units[0]),
-        "n_enemies": int(units[1]),
+        # "n_units": int(units[0]),
+        "n_units": 5,
+        # "n_enemies": int(units[1]),
+        "n_enemies": 5,
         "start_positions": {
             "dist_type": "surrounded_and_reflect",
             "p": 0.5,
@@ -82,13 +82,21 @@ def parse_smacv2_distribution(args):
         } 
     if args.map_name == "DefeatRoaches":
         distribution_config['team_gen'] = {
-            "dist_type": "fixed",
-            "items": ["Marine"] * 5 + ["Roach"] *5,
-            "ally_units": [("Marine", 5)],
-            "enemy_units": [("Roach", 5)],
-            "test_mode": False,
-            "observe": True
+            "dist_type": "weighted_teams",
+            "unit_types": ["marine", "roach"],
+            "weights": [0.5, 0.5],
+            "observe": True,
         }
+    # if args.map_name == "DefeatRoaches":
+    #     distribution_config['team_gen'] = {
+    #         "dist_type": "fixed",
+    #         "items": [(["marine"] * 5)], #(["Roach"] * 5)],
+    #         "ally_units": [("marine", 5)],
+    #         # "enemy_units": [("Roach", 5)],
+    #         "enemy_units": [("marine", 5)],
+    #         "test_mode": False,
+    #         "observe": True
+    #     }
     return distribution_config
 
 def make_train_env(all_args):
@@ -100,14 +108,18 @@ def make_train_env(all_args):
             elif all_args.env_name == "StarCraft2v2":
                 patch_defeatRoaches()
                 from onpolicy.envs.starcraft2.SMACv2_modified import SMACv2
-                env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name)
+                capability_config = parse_smacv2_distribution(all_args)
+                capability_config['render'] = True
+                env = SMACv2(capability_config=capability_config, map_name=all_args.map_name)
             elif all_args.env_name == "SMAC":
                 from onpolicy.envs.starcraft2.SMAC import SMAC
                 env = SMAC(map_name=all_args.map_name)
             elif all_args.env_name == "SMACv2":
                 patch_defeatRoaches()
                 from onpolicy.envs.starcraft2.SMACv2 import SMACv2
-                env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name)
+                capability_config = parse_smacv2_distribution(all_args)
+                # capability_config['render'] = True
+                env = SMACv2(capability_config=capability_config, map_name=all_args.map_name)
             else:
                 print("Can not support the " + all_args.env_name + "environment.")
                 raise NotImplementedError
@@ -129,12 +141,14 @@ def make_eval_env(all_args):
                 from onpolicy.envs.starcraft2.StarCraft2_Env import StarCraft2Env
                 env = StarCraft2Env(all_args)
             elif all_args.env_name == "StarCraft2v2":
+                print(f"yay! use_render: {all_args.use_render}")
                 from onpolicy.envs.starcraft2.SMACv2_modified import SMACv2
                 env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name, render=True)
             elif all_args.env_name == "SMAC":
                 from onpolicy.envs.starcraft2.SMAC import SMAC
                 env = SMAC(map_name=all_args.map_name)
             elif all_args.env_name == "SMACv2":
+                print(f"yay! use_render: {all_args.use_render}")
                 from onpolicy.envs.starcraft2.SMACv2 import SMACv2
                 
                 env = SMACv2(capability_config=parse_smacv2_distribution(all_args), map_name=all_args.map_name)
@@ -175,6 +189,9 @@ def parse_args(args, parser):
 def main(args):
     parser = get_config()
     all_args = parse_args(args, parser)
+    all_args.save_gifs = True
+
+    print(all_args)
 
     if all_args.algorithm_name == "rmappo":
         print("u are choosing to use rmappo, we set use_recurrent_policy to be True")
@@ -230,7 +247,9 @@ def main(args):
                          dir=str(run_dir),
                          job_type="training",
                          reinit=True)
+        wandb.config.update({"use_render": True}, allow_val_change=True)
         all_args = wandb.config # for wandb sweep
+
     else:
         if not run_dir.exists():
             curr_run = 'run1'
@@ -258,6 +277,8 @@ def main(args):
     envs = make_train_env(all_args)
     eval_envs = make_eval_env(all_args) if all_args.use_eval else None
 
+    print(f"{all_args}")
+
     if all_args.env_name == "SMAC":
         from smac.env.starcraft2.maps import get_map_params
         num_agents = get_map_params(all_args.map_name)["n_agents"]
@@ -265,8 +286,11 @@ def main(args):
         from onpolicy.envs.starcraft2.smac_maps import get_map_params
         num_agents = get_map_params(all_args.map_name)["n_agents"]
     elif all_args.env_name == "SMACv2" or all_args.env_name == 'StarCraft2v2':
+        print(f"yay! use_render: {all_args.use_render}")
+        all_args.use_render = True
         from smacv2.env.starcraft2.maps import get_map_params
         import smacv2.env.starcraft2.maps.smac_maps as smac_maps
+        patch_defeatRoaches()
         num_agents = parse_smacv2_distribution(all_args)['n_units']
 
     config = {
@@ -303,4 +327,5 @@ def main(args):
 
 
 if __name__ == "__main__":
+    print("Webbel")
     main(sys.argv[1:])

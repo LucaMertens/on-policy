@@ -731,7 +731,10 @@ class ShareDummyVecEnv(ShareVecEnv):
         return obs, share_obs, rews, dones, infos, available_actions
 
     def reset(self):
+        print("Reset in ShareDummyVecEnv")
+        print("Number of environments: ", len(self.envs))
         results = [env.reset() for env in self.envs]
+        print("Reset done in ShareDummyVecEnv")
         obs, share_obs, available_actions = map(np.array, zip(*results))
         return obs, share_obs, available_actions
 
