@@ -27,7 +27,7 @@ def patch_defeatRoaches():
         "map_name": "DefeatRoaches",
     }
     
-      if hasattr(smac_maps, 'map_type_to_units'):
+    if hasattr(smac_maps, 'map_type_to_units'):
         smac_maps.map_type_to_units["marines_vs_roaches"] = {
             "ally_units": [("Marine", 5)],
             "enemy_units": [("Roach", 5)]

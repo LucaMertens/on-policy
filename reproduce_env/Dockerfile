@@ -24,17 +24,23 @@ RUN mkdir -p /opt/StarCraftII/Maps && \
     mv mini_games /opt/StarCraftII/Maps/ && \
     rm mini_games.zip
 
-# Download SMAC Maps
-RUN cd /opt && \
-    wget https://github.com/oxwhirl/smac/releases/download/v1/SMAC_Maps_V1.tar.gz && \
-    tar -xzf SMAC_Maps_V1.tar.gz && \
-    mv SMAC_Maps /opt/StarCraftII/Maps/ && \
-    rm SMAC_Maps_V1.tar.gz
+# # Download SMAC Maps
+# RUN cd /opt && \
+#     wget https://github.com/oxwhirl/smac/releases/download/v1/SMAC_Maps_V1.tar.gz && \
+#     tar -xzf SMAC_Maps_V1.tar.gz && \
+#     mv SMAC_Maps /opt/StarCraftII/Maps/ && \
+#     rm SMAC_Maps_V1.tar.gz
 
 # Download stableid.json for SMAC
 RUN cd /opt/StarCraftII && \
     wget https://raw.githubusercontent.com/Blizzard/s2client-proto/master/stableid.json
 
+# Download SMACV2 Maps
+RUN cd /opt && \
+    wget https://github.com/oxwhirl/smacv2/releases/download/maps/SMAC_Maps.zip && \
+    unzip -d /opt/SMAC_Maps SMAC_Maps.zip && \
+    mv SMAC_Maps /opt/StarCraftII/Maps/ && \
+    rm SMAC_Maps.zip
 
 # ----------------------------------
 
